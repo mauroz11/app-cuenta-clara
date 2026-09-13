@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="es-CO">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f766e" />
+    <meta name="description" content="Crea cuentas de cobro claras para Colombia." />
+    <title>Cuenta Clara — Colombia</title>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" />
+    <link rel="stylesheet" href="./src/style.css" />
+    <style>
+      /* Complementos de cámara y revisión: se mantienen aquí para poder abrir el archivo sin compilación. */
+      .guide-box { height: 136px; border-radius: 10px; padding: 0 25px; color: #5a897c; }
+      .camera-stage { position: relative; margin-top: 15px; border-radius: 13px; overflow: hidden; background: #122922; aspect-ratio: 16 / 9; box-shadow: inset 0 0 0 1px #0b3c32; }
+      .camera-stage video { display: block; width: 100%; height: 100%; object-fit: cover; }
+      .camera-crop-guide { position: absolute; left: 6%; right: 6%; top: 27%; bottom: 27%; border: 2px dashed #b9f1d6; border-radius: 9px; background: #0d4e3a18; display: grid; place-items: center; text-align: center; color: #fff; text-shadow: 0 1px 3px #062219; font-size: 12px; font-weight: 700; padding: 12px; pointer-events: none; }
+      .camera-controls { position: absolute; bottom: 11px; left: 12px; right: 12px; display: flex; align-items: center; justify-content: space-between; }
+      .camera-capture { border: 0; background: #fff; color: #075b55; font: inherit; font-size: 12px; font-weight: 800; border-radius: 99px; padding: 9px 15px; box-shadow: 0 2px 10px #001a1126; cursor: pointer; }
+      .camera-close { height: 33px; width: 33px; border: 0; border-radius: 50%; background: #10271ddd; color: #fff; font-size: 23px; line-height: 1; cursor: pointer; }
+      .camera-status { min-height: 17px; margin: 4px 0 0; color: #65746f; font-size: 11px; text-align: center; }
+      .review-section { border-top: 1px solid #dce7e3; margin-top: 14px; padding-top: 13px; }
+      .review-section:first-of-type { border-top: 0; margin-top: 0; padding-top: 0; }
+      .review-section h3 { font-size: 10px; letter-spacing: 1px; color: #0f766e; margin: 0 0 8px; }
+      .edit-review { width: 100%; margin-top: 12px; }
+      @media (max-width: 600px) { .guide-box { height: 148px; } .camera-stage { aspect-ratio: 1.5 / 1; } .camera-crop-guide { top: 30%; bottom: 30%; left: 5%; right: 5%; } }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="topbar">
+        <a class="brand" href="#inicio" aria-label="Cuenta Clara, inicio"><span class="brand-mark">✓</span><span>cuenta<span>clara</span></span></a>
+        <button class="icon-button" id="resetButton" aria-label="Empezar una cuenta nueva" title="Empezar de nuevo">↺</button>
+      </header>
+
+      <main>
+        <section id="welcomeScreen" class="screen welcome-screen">
+          <div class="hero-illustration" aria-hidden="true"><div class="paper"><i></i><i></i><i></i><b>$</b></div></div>
+          <p class="eyebrow">COLOMBIA · SIMPLE Y CLARO</p>
+          <h1>Tu cuenta de cobro,<br><em>sin enredos.</em></h1>
+          <p class="lead">Diligencia, firma y descarga un documento profesional en pocos minutos.</p>
+          <button class="primary-button large" id="startButton">Crear mi cuenta <span>→</span></button>
+          <div class="notice compact"><span>i</span><p>Esta herramienta es para personas <strong>no obligadas a facturar</strong>. Si debes emitir factura electrónica, usa el sistema de la DIAN o tu proveedor tecnológico.</p></div>
+        </section>
+
+        <section id="wizardScreen" class="screen wizard-screen hidden">
+          <div class="progress-wrap">
+            <div class="progress-label"><span id="stepTitle">Tu información</span><span id="stepCount">1 de 5</span></div>
+            <div class="progress-track"><div id="progressBar"></div></div>
+          </div>
+
+          <form id="billingForm" novalidate>
+            <section class="step active" data-step="1">
+              <p class="eyebrow">PRIMERO, LO ESENCIAL</p>
+              <h2>¿Quién realiza el cobro?</h2>
+              <p class="step-intro">Estos datos aparecerán como quien presta el servicio.</p>
+              <div class="field-grid">
+                <label class="field full">Nombre completo o razón social<input required name="issuerName" autocomplete="name" placeholder="Ej. María Fernanda Gómez" /></label>
+                <label class="field">Tipo de documento<select name="issuerDocType"><option value="Cédula de ciudadanía">Cédula de ciudadanía</option><option value="NIT">NIT</option><option value="Cédula de extranjería">Cédula de extranjería</option><option value="Pasaporte">Pasaporte</option></select></label>
+                <label class="field">Número de documento<input required name="issuerDoc" inputmode="numeric" placeholder="Ej. 1.012.345.678" /></label>
+                <label class="field">Ciudad<input required name="issuerCity" placeholder="Ej. Medellín" /></label>
+                <label class="field">Teléfono (opcional)<input name="issuerPhone" inputmode="tel" placeholder="Ej. 300 123 4567" /></label>
+                <label class="field full">Correo electrónico (opcional)<input name="issuerEmail" type="email" autocomplete="email" placeholder="correo@ejemplo.com" /></label>
+              </div>
+            </section>
+
+            <section class="step" data-step="2">
+              <p class="eyebrow">AHORA EL DESTINATARIO</p>
+              <h2>¿A quién le cobras?</h2>
+              <p class="step-intro">Ingresa los datos de la empresa o persona que realizará el pago.</p>
+              <div class="field-grid">
+                <label class="field full">Nombre o razón social<input required name="clientName" placeholder="Ej. Soluciones S.A.S." /></label>
+                <label class="field">Tipo de documento<select name="clientDocType"><option value="NIT">NIT</option><option value="Cédula de ciudadanía">Cédula de ciudadanía</option><option value="Cédula de extranjería">Cédula de extranjería</option></select></label>
+                <label class="field">Número de documento<input required name="clientDoc" inputmode="numeric" placeholder="Ej. 900.123.456-7" /></label>
+                <label class="field full">Dirección (opcional)<input name="clientAddress" placeholder="Ej. Calle 10 # 20-30, Bogotá" /></label>
+                <label class="field full">Correo de quien recibe (opcional)<input name="clientEmail" type="email" placeholder="pagos@empresa.com" /></label>
+              </div>
+            </section>
+
+            <section class="step" data-step="3">
+              <p class="eyebrow">DETALLE DEL COBRO</p>
+              <h2>¿Qué servicio cobras?</h2>
+              <p class="step-intro">Describe el servicio de forma concreta. Puedes incluir el periodo trabajado.</p>
+              <div class="field-grid">
+                <label class="field full">Concepto del servicio<textarea required name="concept" rows="4" placeholder="Ej. Servicios profesionales de diseño gráfico correspondientes a agosto de 2026."></textarea></label>
+                <label class="field">Fecha de emisión<input required name="issueDate" type="date" /></label>
+                <label class="field">Número de cuenta<input required name="invoiceNumber" placeholder="Ej. CC-001" /></label>
+                <label class="field full money-field">Valor total a cobrar (COP)<div class="money-input"><span>$</span><input required name="amount" inputmode="numeric" placeholder="0" /></div><small id="amountWords">Ingresa el valor en pesos colombianos.</small></label>
+                <label class="check-field full"><input type="checkbox" name="includeWithholding" /><span><strong>Incluir nota sobre retenciones</strong><small>Se indicará que las retenciones aplicables se practican conforme a la norma y a la calidad tributaria de las partes.</small></span></label>
+              </div>
+            </section>
+
+            <section class="step" data-step="4">
+              <p class="eyebrow">TU FIRMA</p>
+              <h2>Firma tu cuenta de cobro</h2>
+              <p class="step-intro">Puedes escribirla, subir una imagen o tomarle una foto. La ajustaremos sobre fondo blanco.</p>
+              <div class="signature-tabs" role="tablist">
+                <button type="button" class="tab active" data-signature-tab="draw">Dibujar</button>
+                <button type="button" class="tab" data-signature-tab="photo">Foto o archivo</button>
+              </div>
+              <div id="drawPanel" class="signature-panel">
+                <div class="signature-canvas-wrap"><canvas id="signatureCanvas" aria-label="Área para dibujar la firma"></canvas><span>Firma dentro de este recuadro</span></div>
+                <button class="text-button" type="button" id="clearSignature">Limpiar firma</button>
+              </div>
+              <div id="photoPanel" class="signature-panel hidden">
+                <div class="capture-guide"><div class="guide-box"><span>Ubica toda la firma dentro de esta guía amplia</span></div><p>Usa buena luz y un fondo claro. Esta zona horizontal será la que recortemos para tu documento.</p></div>
+                <div id="cameraStage" class="camera-stage hidden">
+                  <video id="cameraVideo" autoplay playsinline muted aria-label="Vista previa de la cámara para la firma"></video>
+                  <div class="camera-crop-guide"><span>Firma completa dentro de este recuadro</span></div>
+                  <div class="camera-controls"><button type="button" class="camera-close" id="closeCamera" aria-label="Cerrar cámara">×</button><button type="button" class="camera-capture" id="capturePhoto">Tomar foto</button></div>
+                </div>
+                <div class="photo-actions"><button class="secondary-button" id="openCamera" type="button">Abrir cámara</button><label class="secondary-button">Subir archivo<input id="fileInput" type="file" accept="image/*" hidden /></label></div>
+                <p id="cameraStatus" class="camera-status" aria-live="polite"></p>
+                <div id="photoPreviewWrap" class="photo-preview hidden"><img id="photoPreview" alt="Vista previa de la firma" /><button type="button" class="text-button" id="removePhoto">Quitar imagen</button></div>
+              </div>
+              <div class="notice"><span>i</span><p>Al generar el PDF, confirmas que la información es correcta y que la firma corresponde a quien realiza el cobro.</p></div>
+            </section>
+
+            <section class="step" data-step="5">
+              <p class="eyebrow">REVISA Y GENERA</p>
+              <h2>Todo listo para cobrar</h2>
+              <p class="step-intro">Revisa el resumen. Podrás volver a editar antes de generar el PDF.</p>
+              <div class="preview-card" id="reviewCard"></div>
+              <button type="button" class="secondary-button edit-review" id="editReview">Editar información</button>
+              <div class="notice warning"><span>!</span><p><strong>Revisión tributaria:</strong> una cuenta de cobro no es una factura de venta. Úsala únicamente si no estás obligado(a) a facturar; ante dudas, consulta a un contador.</p></div>
+            </section>
+          </form>
+
+          <div class="wizard-actions">
+            <button class="back-button" id="backButton" type="button">← Atrás</button>
+            <button class="primary-button" id="nextButton" type="button">Continuar <span>→</span></button>
+          </div>
+        </section>
+
+        <section id="doneScreen" class="screen done-screen hidden">
+          <div class="success-icon">✓</div>
+          <p class="eyebrow">DOCUMENTO GENERADO</p>
+          <h1>Tu cuenta está<br><em>lista para enviar.</em></h1>
+          <p class="lead">Generamos tu cuenta de cobro en PDF. Guárdala o compártela directamente.</p>
+          <div class="document-summary" id="doneSummary"></div>
+          <button class="primary-button large" id="downloadButton">Descargar PDF <span>↓</span></button>
+          <button class="whatsapp-button" id="whatsappButton"><span>◔</span> Enviar por WhatsApp</button>
+          <button class="text-button center" id="newAccountButton">Crear otra cuenta de cobro</button>
+        </section>
+      </main>
+      <footer>Hecho para Colombia · Tus datos se guardan solo en este dispositivo.</footer>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" integrity="sha512-qZvrf9I5zPeZ85L7fK0xVQkZtE5WpwqG6JmOy5NIeGjn1l0YPGw0JezSuQUj8C3feFJ2n8wX5DSQbYqCXLt6Pw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- Script clásico: mantiene compatibilidad al abrir index.html directamente con file://. -->
+    <script src="./src/main.js"></script>
+  </body>
+</html>
