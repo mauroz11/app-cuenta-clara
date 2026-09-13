@@ -4,6 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "npx serve .",
-    "build": "node -e \"console.log('Static site ready for Vercel')\""
+    "build": "node build.js"
   }
 }
